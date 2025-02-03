@@ -1,0 +1,5 @@
+[wokwi]
+version=1
+firmware= 'build/One_Shot.uf2'
+elf= 'build/One_Shot.elf'
+gdbServerPort=3333
