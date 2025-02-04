@@ -12,6 +12,7 @@
 // Variável para controlar o estado do sistema
 volatile int estado_leds = 0;
 volatile bool botao_pressionado = false;
+volatile uint32_t ultimo_tempo = 0;
 
 // Função de callback para desligar os LEDs
 int64_t desligar_led_callback(alarm_id_t id, void *user_data) {
@@ -33,25 +34,25 @@ int64_t desligar_led_callback(alarm_id_t id, void *user_data) {
 }
 
 // Função de interrupção para o botão
-void botao_irq_handler(uint gpio, uint32_t events) {
-    if (!botao_pressionado) {
-        sleep_ms(50);
 
-         if (!botao_pressionado) {
+
+void botao_irq_handler(uint gpio, uint32_t events) {
+    uint32_t tempo_atual = to_ms_since_boot(get_absolute_time());
+    if (tempo_atual - ultimo_tempo > 200) { // 200ms para debounce
+        if (!botao_pressionado) {
             botao_pressionado = true;
-          
             estado_leds = 0;
 
-            // Liga todos os LEDs
             gpio_put(LED_AZUL, 1);
             gpio_put(LED_VERMELHO, 1);
             gpio_put(LED_VERDE, 1);
 
-            // Inicia o temporizador para desligar os LEDs
             add_alarm_in_ms(3000, desligar_led_callback, NULL, false);
         }
-        }
+    }
+    ultimo_tempo = tempo_atual;
 }
+
 
 int main() {
     stdio_init_all();
